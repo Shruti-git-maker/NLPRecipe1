@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recipe Recommender</title>
+</head>
+<body>
+    <h1>Recipe Recommender Chatbot</h1>
+    <form id="ingredient-form">
+        <label for="user_input">Enter your ingredients:</label><br>
+        <input type="text" id="user_input" name="user_input" required><br><br>
+        <input type="submit" value="Get Recommendations">
+    </form>
+
+    <div id="response"></div>
+
+    <script>
+        document.getElementById('ingredient-form').onsubmit = async function(event) {
+            event.preventDefault();
+            const userInput = document.getElementById('user_input').value;
+            const responseDiv = document.getElementById('response');
+
+            const response = await fetch('/get_recommendations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'user_input': userInput
+                })
+            });
+
+            const data = await response.json();
+            responseDiv.innerHTML = '';
+
+            if (data.message) {
+                responseDiv.innerHTML = `<p>${data.message}</p>`;
+            } else {
+                data.forEach(recipe => {
+                    const ingredientsList = recipe.ingredients.join(', ');
+                    // Include an image tag with url_for to access the image
+                    responseDiv.innerHTML += `
+                        <h3>${recipe.title}</h3>
+                        <img src="{{ url_for('static', filename='images/${recipe.image}') }}" alt="${recipe.title}" style="width:200px;height:auto;">
+                        <p>Ingredients: ${ingredientsList}</p>
+                    `;
+                });
+            }
+        };
+    </script>
+</body>
+</html>
+
